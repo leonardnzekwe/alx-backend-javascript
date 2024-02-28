@@ -2,9 +2,11 @@ const http = require('http');
 const fs = require('fs').promises;
 
 /**
- * Counts the number of students in a database file and provides additional information about the students.
+ * Counts the number of students in a database file and provides
+ * additional information about the students.
  * @param {string} path - The path to the database file.
- * @returns {Promise<string>} A promise that resolves to a string containing the number of students and additional information.
+ * @returns {Promise<string>} A promise that resolves to a string
+ * containing the number of students and additional information.
  * @throws {Error} If the database file cannot be loaded.
  */
 async function countStudents(path) {

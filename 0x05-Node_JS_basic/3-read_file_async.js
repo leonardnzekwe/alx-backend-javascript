@@ -1,10 +1,12 @@
 const fs = require('fs').promises;
 
 /**
- * Counts the number of students and their distribution by field of study from a given file.
+ * Counts the number of students and their distribution
+ * by field of study from a given file.
  * 
  * @param {string} path - The path to the file containing student data.
- * @returns {Promise<void>} - A promise that resolves when the student count and distribution is logged.
+ * @returns {Promise<void>} - A promise that resolves when the student
+ * count and distribution is logged.
  * @throws {Error} - If the database file cannot be loaded.
  */
 async function countStudents(path) {
