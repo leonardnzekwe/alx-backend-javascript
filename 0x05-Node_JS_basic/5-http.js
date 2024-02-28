@@ -1,39 +1,54 @@
-// 5-http.js
-
 const http = require('http');
-const countStudents = require('./3-read_file_async');
+const fs = require('fs').promises;
 
-// Create a small HTTP server
-const app = http.createServer((req, res) => {
-  // Set the response header
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-
-  // Parse the URL
-  const url = new URL(req.url, `http://${req.headers.host}`);
-
-  // Handle requests based on URL path
-  if (url.pathname === '/') {
-    // Return "Hello Holberton School!" for the root path
-    res.end('Hello Holberton School!\n');
-  } else if (url.pathname === '/students') {
-    // Return the list of students for the /students path
-    res.write('This is the list of our students\n');
-    countStudents(process.argv[2])
-      .then(() => {
-        res.end();
+/**
+ * Counts the number of students in a database file and provides additional information about the students.
+ * @param {string} path - The path to the database file.
+ * @returns {Promise<string>} A promise that resolves to a string containing the number of students and additional information.
+ * @throws {Error} If the database file cannot be loaded.
+ */
+async function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8')
+      .then((db) => {
+        let data;
+        const students = db.split('\n').filter((line) => line.trim() !== '');
+        data = `Number of students: ${students.length - 1}`;
+        const fields = {};
+        students.slice(1).forEach((student) => {
+          const field = student.split(',')[3];
+          const name = student.split(',')[0];
+          if (fields[field]) {
+            fields[field].push(name);
+          } else {
+            fields[field] = [name];
+          }
+        });
+        Object.keys(fields).forEach((key) => {
+          data = data.concat(`\nNumber of students in ${key}: ${fields[key].length}. List: ${fields[key].join(', ')}`);
+        });
+        resolve(data);
       })
-      .catch((error) => {
-        res.end(error.message);
+      .catch(() => {
+        reject(new Error('Cannot load the database'));
       });
-  } else {
-    // Return 404 Not Found for any other path
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not Found\n');
+  });
+}
+
+const app = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  if (req.url === '/') {
+    res.end('Hello Holberton School!');
+  } else if (req.url === '/students') {
+    countStudents(process.argv[2])
+      .then((data) => {
+        res.end(`This is the list of our students\n${data}`);
+      })
+      .catch((err) => {
+        res.end(`This is the list of our students\n${err.message}`);
+      });
   }
 });
 
-// Listen on port 1245
-app.listen(1245);
-
-// Export the app variable
+app.listen(1245, () => {});
 module.exports = app;

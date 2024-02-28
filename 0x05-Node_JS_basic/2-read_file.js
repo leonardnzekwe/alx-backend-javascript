@@ -1,32 +1,29 @@
-// 2-read_file.js
-
-import fs from 'fs';
+const fs = require('fs');
 
 /**
- * Counts the number of students in each field from the database file
- * @param {string} path - The path to the database file
+ * Counts the number of students in a database file and prints the count per field.
+ * @param {string} path - The path to the database file.
+ * @throws {Error} If the database file cannot be loaded.
  */
 function countStudents(path) {
   try {
-    const data = fs.readFileSync(path, 'utf8').split('\n').filter(Boolean);
-    const students = {};
-
-    for (const line of data.slice(1)) {
-      const [firstname, , , field] = line.split(',');
-      if (!students[field]) {
-        students[field] = [];
+    const db = fs.readFileSync(path, 'utf8').split('\n').filter((line) => line.trim() !== '');
+    console.log(`Number of students: ${db.length - 1}`);
+    const fields = {};
+    db.slice(1).forEach((student) => {
+      const field = student.split(',')[3];
+      const name = student.split(',')[0];
+      if (fields[field]) {
+        fields[field].push(name);
+      } else {
+        fields[field] = [name];
       }
-      students[field].push(firstname);
-    }
-
-    console.log(`Number of students: ${data.length - 1}`);
-    for (const field in students) {
-      console.log(
-        `Number of students in ${field}: ${students[field].length}. List: ${students[field].join(', ')}`,
-      );
-    }
-  } catch (error) {
-    throw new Error(`Cannot load the database file: ${path}`);
+    });
+    Object.keys(fields).forEach((key) => {
+      console.log(`Number of students in ${key}: ${fields[key].length}. List: ${fields[key].join(', ')}`);
+    });
+  } catch (err) {
+    throw new Error('Cannot load the database');
   }
 }
 

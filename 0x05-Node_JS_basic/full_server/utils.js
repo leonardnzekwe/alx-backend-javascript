@@ -1,28 +1,34 @@
-// full_server/utils.js
-
-import fs from 'fs';
+const fs = require('fs').promises;
 
 /**
- * Reads the database asynchronously and returns a Promise
- * @param {string} filePath - Path to the database file
- * @returns {Promise<Object>} - Object of arrays of first names per fields
+ * Reads a database file and returns a Promise that
+ * resolves to an object containing fields and corresponding names.
+ * @param {string} path - The path to the database file.
+ * @returns {Promise<Object>} A Promise that resolves to an object
+ * with fields as keys and an array of names as values.
+ * @throws {Error} If there is an error reading the database file.
  */
-export default function readDatabase(filePath) {
+async function readDatabase(path) {
   return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        reject(new Error('Cannot load the database'));
-      } else {
-        const students = {};
-        data.split('\n').forEach((line) => {
-          const [firstname, , , field] = line.split(',');
-          if (field && field.trim()) {
-            if (!students[field]) students[field] = [];
-            students[field].push(firstname);
+    fs.readFile(path, 'utf8')
+      .then((db) => {
+        const students = db.split('\n').filter((line) => line.trim() !== '');
+        const fields = {};
+        students.slice(1).forEach((student) => {
+          const field = student.split(',')[3];
+          const name = student.split(',')[0];
+          if (fields[field]) {
+            fields[field].push(name);
+          } else {
+            fields[field] = [name];
           }
         });
-        resolve(students);
-      }
-    });
+        resolve(fields);
+      })
+      .catch(() => {
+        reject(new Error());
+      });
   });
 }
+
+module.exports = readDatabase;
